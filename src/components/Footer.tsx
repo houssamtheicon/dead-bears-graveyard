@@ -12,7 +12,7 @@ const Footer = () => {
 
         <div className="flex flex-wrap gap-6 justify-center items-center text-base">
           <a
-            href="https://discord.gg/deadbears"
+            href="https://discord.gg/JBApX5VPzN"
             target="_blank"
             rel="noopener noreferrer"
             className="hover:opacity-60 transition-opacity"
@@ -21,7 +21,7 @@ const Footer = () => {
           </a>
           <span className="opacity-20">•</span>
           <a
-            href="https://twitter.com/deadbears"
+            href="https://x.com/theDeadBearsNFT"
             target="_blank"
             rel="noopener noreferrer"
             className="hover:opacity-60 transition-opacity"
@@ -29,14 +29,14 @@ const Footer = () => {
             X (Twitter)
           </a>
           <span className="opacity-20">•</span>
-          <a
+          {/* <a
             href="https://magiceden.io/deadbears"
             target="_blank"
             rel="noopener noreferrer"
             className="hover:opacity-60 transition-opacity"
           >
             Magic Eden
-          </a>
+          </a> */}
         </div>
 
         <p className="text-base opacity-40 italic pt-6 font-light">

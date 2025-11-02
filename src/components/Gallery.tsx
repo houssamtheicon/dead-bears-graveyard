@@ -48,7 +48,7 @@ const Gallery = () => {
           asChild
           className="font-medium"
         >
-          <a href="https://discord.gg/deadbears" target="_blank" rel="noopener noreferrer">
+          <a href="https://discord.gg/JBApX5VPzN" target="_blank" rel="noopener noreferrer">
             Stay Dead for Updates
           </a>
         </Button>

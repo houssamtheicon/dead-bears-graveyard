@@ -33,8 +33,8 @@ const Hero = () => {
             asChild
             className="font-medium min-w-[200px]"
           >
-            <a href="https://discord.gg/deadbears" target="_blank" rel="noopener noreferrer">
-              Join the Graveyard
+            <a href="https://discord.gg/JBApX5VPzN" target="_blank" rel="noopener noreferrer">
+              Join the Underground
             </a>
           </Button>
           
