@@ -26,9 +26,9 @@ const Navbar = () => {
       <div className="container mx-auto px-6 py-4 flex items-center justify-between">
         <button
           onClick={() => scrollToSection("hero")}
-          className="text-2xl font-bold tracking-tight hover:opacity-70 transition-opacity"
+          className="text-3xl font-display font-bold tracking-tight hover:opacity-70 transition-opacity"
         >
-          DEAD BEARS
+          Dead Bears
         </button>
 
         <div className="hidden md:flex items-center gap-8">

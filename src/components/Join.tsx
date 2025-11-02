@@ -5,15 +5,15 @@ const Join = () => {
   return (
     <section id="join" className="min-h-screen flex items-center justify-center py-24 relative">
       <div className="container mx-auto px-6 max-w-4xl text-center">
-        <h2 className="text-5xl md:text-7xl font-bold mb-12 tracking-tight">
+        <h2 className="text-6xl md:text-8xl font-display font-bold mb-16 tracking-tight">
           Join the Graveyard
         </h2>
 
-        <div className="mb-12 space-y-6 text-lg md:text-xl leading-relaxed opacity-90 max-w-3xl mx-auto">
+        <div className="mb-16 space-y-8 text-lg md:text-xl leading-relaxed opacity-70 max-w-3xl mx-auto font-light">
           <p>
             Dead Bears isn't just a collection — it's a movement of misfits who stopped trying to look alive.
           </p>
-          <p className="font-medium">
+          <p className="font-medium text-2xl">
             Join us. Build with us. Rot together.
           </p>
         </div>
@@ -22,7 +22,7 @@ const Join = () => {
           variant="default"
           size="lg"
           asChild
-          className="text-base font-semibold mb-16"
+          className="font-medium mb-20"
         >
           <a href="https://discord.gg/deadbears" target="_blank" rel="noopener noreferrer">
             Enter Discord
@@ -30,12 +30,12 @@ const Join = () => {
         </Button>
 
         {/* Social Links */}
-        <div className="flex flex-wrap gap-6 justify-center items-center pt-8 border-t border-border">
+        <div className="flex flex-wrap gap-8 justify-center items-center pt-12 border-t border-border">
           <a
             href="https://discord.gg/deadbears"
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center gap-2 hover:opacity-70 transition-opacity text-sm font-medium"
+            className="flex items-center gap-2 hover:opacity-60 transition-opacity text-base font-medium"
           >
             <MessageCircle size={20} />
             Discord
@@ -45,7 +45,7 @@ const Join = () => {
             href="https://twitter.com/deadbears"
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center gap-2 hover:opacity-70 transition-opacity text-sm font-medium"
+            className="flex items-center gap-2 hover:opacity-60 transition-opacity text-base font-medium"
           >
             <Twitter size={20} />
             X (Twitter)
@@ -55,7 +55,7 @@ const Join = () => {
             href="https://magiceden.io/deadbears"
             target="_blank"
             rel="noopener noreferrer"
-            className="hover:opacity-70 transition-opacity text-sm font-medium"
+            className="hover:opacity-60 transition-opacity text-base font-medium"
           >
             Magic Eden
           </a>

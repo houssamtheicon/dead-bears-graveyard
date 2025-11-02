@@ -14,15 +14,15 @@ const Hero = () => {
       <div className="absolute inset-0 bg-gradient-to-b from-transparent via-fog to-transparent opacity-50 animate-float" />
       
       <div className="container mx-auto px-6 text-center relative z-10 animate-fade-in">
-        <h1 className="text-7xl md:text-9xl font-bold tracking-tighter mb-4 text-shadow-dark">
-          DEAD BEARS
+        <h1 className="text-8xl md:text-[12rem] font-display font-bold tracking-tight mb-6 leading-none">
+          Dead Bears
         </h1>
         
-        <p className="text-2xl md:text-4xl font-medium mb-3 opacity-80">
+        <p className="text-2xl md:text-3xl font-medium mb-4 opacity-70 italic">
           we're all gonna be dead.
         </p>
         
-        <p className="text-lg md:text-xl mb-12 opacity-60 max-w-2xl mx-auto">
+        <p className="text-base md:text-lg mb-16 opacity-50 max-w-xl mx-auto font-light">
           Born from Okay Bears. Reborn in chaos.
         </p>
 
@@ -31,7 +31,7 @@ const Hero = () => {
             variant="default"
             size="lg"
             asChild
-            className="text-base font-semibold min-w-[200px]"
+            className="font-medium min-w-[200px]"
           >
             <a href="https://discord.gg/deadbears" target="_blank" rel="noopener noreferrer">
               Join the Graveyard
@@ -42,7 +42,7 @@ const Hero = () => {
             variant="outline"
             size="lg"
             onClick={scrollToLore}
-            className="text-base font-semibold min-w-[200px] border-2"
+            className="font-medium min-w-[200px]"
           >
             Read the Lore
           </Button>

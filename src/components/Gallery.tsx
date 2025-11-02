@@ -14,16 +14,16 @@ const Gallery = () => {
 
   return (
     <section id="gallery" className="min-h-screen flex items-center justify-center py-24">
-      <div className="container mx-auto px-6 max-w-4xl text-center">
-        <h2 className="text-5xl md:text-7xl font-bold mb-8 tracking-tight">
+      <div className="container mx-auto px-6 max-w-5xl text-center">
+        <h2 className="text-6xl md:text-8xl font-display font-bold mb-10 tracking-tight">
           The Graveyard
         </h2>
         
-        <p className="text-sm uppercase tracking-widest mb-12 opacity-60">
-          (Gallery)
+        <p className="text-sm uppercase tracking-[0.3em] mb-16 opacity-40 font-medium">
+          Gallery
         </p>
 
-        <div className="mb-12 space-y-6 text-lg md:text-xl opacity-80">
+        <div className="mb-16 space-y-6 text-lg md:text-xl opacity-70 font-light max-w-2xl mx-auto">
           <p>
             The art's still buried deep. It'll crawl out when it's ready.
           </p>
@@ -33,20 +33,20 @@ const Gallery = () => {
         </div>
 
         {/* Teaser placeholder */}
-        <div className="relative w-full max-w-md mx-auto aspect-square mb-12 bg-secondary/20 rounded-lg overflow-hidden">
+        <div className="relative w-full max-w-lg mx-auto aspect-square mb-16 bg-card rounded-2xl overflow-hidden shadow-lg border border-border">
           <div className="absolute inset-0 flex items-center justify-center backdrop-blur-xl">
-            <p className={`text-3xl font-bold tracking-wider transition-opacity ${flicker ? "opacity-30" : "opacity-100"}`}>
-              COMING SOON
+            <p className={`text-4xl font-display font-bold tracking-wide transition-opacity ${flicker ? "opacity-30" : "opacity-100"}`}>
+              Coming Soon
             </p>
           </div>
-          <div className="absolute inset-0 grain opacity-50" />
+          <div className="absolute inset-0 grain opacity-30" />
         </div>
 
         <Button
           variant="default"
           size="lg"
           asChild
-          className="text-base font-semibold"
+          className="font-medium"
         >
           <a href="https://discord.gg/deadbears" target="_blank" rel="noopener noreferrer">
             Stay Dead for Updates
