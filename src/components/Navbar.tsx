@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 
 const Navbar = () => {
@@ -58,9 +59,9 @@ const Navbar = () => {
           asChild
           className="font-medium"
         >
-          <a href="https://discord.gg/JBApX5VPzN" target="_blank" rel="noopener noreferrer">
-            Join Discord
-          </a>
+          <Link to="/terminal">
+            Enter Terminal
+          </Link>
         </Button>
       </div>
     </nav>
