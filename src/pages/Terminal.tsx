@@ -202,15 +202,18 @@ const Terminal = () => {
     }
 
     // Handle riddle answer
-    if (currentRiddle) {
-      if (trimmedCmd === currentRiddle.a.toLowerCase()) {
-        await typewriterEffect('Correct! The void acknowledges your wisdom. ✨', 'success');
-      } else {
-        await typewriterEffect(`Wrong... The answer was: ${currentRiddle.a}`, 'error');
-      }
-      setCurrentRiddle(null);
-      return;
-    }
+if (currentRiddle) {
+  const answer = currentRiddle.a.toLowerCase().replace(/\s+/g, '');
+  const userAnswer = trimmedCmd.replace(/\s+/g, '');
+  if (userAnswer === answer) {
+    await typewriterEffect('Correct! The void acknowledges your wisdom. ✨', 'success');
+  } else {
+    await typewriterEffect(`Wrong... The answer was: ${currentRiddle.a}`, 'error');
+  }
+  setCurrentRiddle(null);
+  return;
+}
+
 
     // Handle normal commands
     if (commands[trimmedCmd]) {
