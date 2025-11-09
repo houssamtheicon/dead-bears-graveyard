@@ -40,13 +40,12 @@ const Terminal = () => {
     outputEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [output]);
 
-  // Focus input on mount and click
-  useEffect(() => {
+// Always keep input focused unless typing
+useEffect(() => {
+  if (!isTyping) {
     inputRef.current?.focus();
-    const focusHandler = () => inputRef.current?.focus();
-    window.addEventListener('click', focusHandler);
-    return () => window.removeEventListener('click', focusHandler);
-  }, []);
+  }
+}, [isTyping, output]);
 
   // Generate unique code
   const generateCode = (type: RewardType) => {
