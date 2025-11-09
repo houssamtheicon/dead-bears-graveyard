@@ -193,7 +193,8 @@ useEffect(() => {
         await typewriterEffect('Correct! The void acknowledges your wisdom. ✨', 'success');
         await typewriterEffect('You have solved the riddle! 🎉', 'success');
 
-        const text = `I just solved a Dead Bears riddle in the Ritual Terminal! 💀\n\nCheck yours at deadbears.xyz/terminal\n\n#DeadBearsNFT`;
+        const text = `I just solved a Dead Bears riddle in the Ritual Terminal! 💀\n\nCheck yours deadbears.xyz/terminal\n\n@theDeadBearsNFT
+`;
         setRiddleReward({ text });
       } else {
         await typewriterEffect(`Wrong... The answer was: ${currentRiddle.a}`, 'error');
@@ -254,7 +255,8 @@ useEffect(() => {
         {/* Secret / riddle rewards */}
         {reward && (
           <div className="mb-4 p-4 border border-green-400 bg-green-400/5">
-            <Button onClick={() => handleShare(`I just unlocked a ${reward.type} reward in Dead Bears Ritual Terminal! 💀\n\nCheck yours at deadbears.xyz/terminal\n\n#DeadBearsNFT`)} className="w-full bg-green-400 text-black hover:bg-green-500 font-bold">
+            <Button onClick={() => handleShare(`I just unlocked a ${reward.type} reward in Dead Bears Ritual Terminal! 💀\n\nCheck yours at deadbears.xyz/terminal\n\n@theDeadBearsNFT
+`)} className="w-full bg-green-400 text-black hover:bg-green-500 font-bold">
               📢 SHARE ON TWITTER
             </Button>
           </div>
