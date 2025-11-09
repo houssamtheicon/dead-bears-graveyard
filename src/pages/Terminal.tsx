@@ -35,10 +35,14 @@ const Terminal = () => {
   const outputEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  // Auto-scroll
-  useEffect(() => {
-    outputEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [output]);
+// Always keep input focused unless typing
+useEffect(() => {
+  if (!isTyping) {
+    const t = setTimeout(() => inputRef.current?.focus(), 0);
+    return () => clearTimeout(t);
+  }
+}, [isTyping, output]);
+
 
 // Always keep input focused unless typing
 useEffect(() => {
