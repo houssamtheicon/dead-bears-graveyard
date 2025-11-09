@@ -63,37 +63,22 @@ const Terminal = () => {
   };
 
   // Typewriter effect
-  const typewriterEffect = async (text: string, type: OutputLine['type'] = 'response') => {
-    try {
-      setIsTyping(true);
-      const lines = text.split('\n');
-      for (let line of lines) {
-        let currentText = '';
-        for (let i = 0; i < line.length; i++) {
-          currentText += line[i];
-          setOutput(prev => {
-            const newOutput = [...prev];
-            if (newOutput[newOutput.length - 1]?.type === 'typing') {
-              newOutput[newOutput.length - 1] = { text: currentText, type: 'typing' };
-            } else {
-              newOutput.push({ text: currentText, type: 'typing' });
-            }
-            return newOutput;
-          });
-          await new Promise(r => setTimeout(r, 25));
-        }
-        // finalize line
-        setOutput(prev => {
-          const newOutput = [...prev];
-          newOutput[newOutput.length - 1] = { text: line, type };
-          return newOutput;
-        });
-      }
-    } finally {
-      setIsTyping(false);
-      inputRef.current?.focus();
+const typewriterEffect = async (text: string, type: OutputLine['type'] = 'response') => {
+  try {
+    setIsTyping(true);
+    let currentText = '';
+    for (let i = 0; i < text.length; i++) {
+      currentText += text[i];
+      setOutput(prev => [...prev.filter(l => l.type !== 'typing'), { text: currentText, type: 'typing' }]);
+      await new Promise(r => setTimeout(r, 25));
     }
-  };
+    // finalize line
+    setOutput(prev => [...prev.filter(l => l.type !== 'typing'), { text, type }]);
+  } finally {
+    setIsTyping(false);
+    inputRef.current?.focus();
+  }
+};
 
   // Command handlers
   const commands: Record<string, () => Promise<void>> = {
@@ -207,12 +192,15 @@ if (currentRiddle) {
   const userAnswer = trimmedCmd.replace(/\s+/g, '');
   if (userAnswer === answer) {
     await typewriterEffect('Correct! The void acknowledges your wisdom. ✨', 'success');
+    await typewriterEffect('You have solved the riddle! 🎉', 'success');
+    // optionally, give a reward here
   } else {
     await typewriterEffect(`Wrong... The answer was: ${currentRiddle.a}`, 'error');
   }
   setCurrentRiddle(null);
   return;
 }
+
 
 
     // Handle normal commands
