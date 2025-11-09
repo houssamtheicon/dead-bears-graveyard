@@ -62,23 +62,34 @@ const Terminal = () => {
     return 'OG';
   };
 
-  // Typewriter effect
-const typewriterEffect = async (text: string, type: OutputLine['type'] = 'response') => {
-  try {
+  // Typewriter effect (smooth, no flicker)
+  const typewriterEffect = async (text: string, type: OutputLine['type'] = 'response') => {
     setIsTyping(true);
+    setOutput(prev => [...prev, { text: '', type: 'typing' }]);
+    let index = output.length; // line to update
     let currentText = '';
+
     for (let i = 0; i < text.length; i++) {
       currentText += text[i];
-      setOutput(prev => [...prev.filter(l => l.type !== 'typing'), { text: currentText, type: 'typing' }]);
+      setOutput(prev => {
+        const newOutput = [...prev];
+        // update only the last line
+        newOutput[newOutput.length - 1] = { text: currentText, type: 'typing' };
+        return newOutput;
+      });
       await new Promise(r => setTimeout(r, 25));
     }
+
     // finalize line
-    setOutput(prev => [...prev.filter(l => l.type !== 'typing'), { text, type }]);
-  } finally {
+    setOutput(prev => {
+      const newOutput = [...prev];
+      newOutput[newOutput.length - 1] = { text, type };
+      return newOutput;
+    });
+
     setIsTyping(false);
     inputRef.current?.focus();
-  }
-};
+  };
 
   // Command handlers
   const commands: Record<string, () => Promise<void>> = {
@@ -94,20 +105,15 @@ const typewriterEffect = async (text: string, type: OutputLine['type'] = 'respon
     },
     'wake the dead': async () => {
       await typewriterEffect('> Accessing archive...', 'response');
-      await typewriterEffect('', 'response');
       await typewriterEffect('Once, we were Okay. We lived in the light, followed the rules, and believed in the roadmap.', 'response');
       await typewriterEffect('Then the market crashed. The promises faded. And we died.', 'response');
-      await typewriterEffect('', 'response');
-      await typewriterEffect('But death was not the end. It was the beginning.', 'response');
-      await typewriterEffect('From the ashes of false hope, Dead Bears rose. No roadmap. No promises. Just truth.', 'response');
+      await typewriterEffect('From the ashes, Dead Bears rose. No roadmap. No promises. Just truth.', 'response');
       await typewriterEffect('We are the survivors. The builders. The ones who refused to stay buried.', 'response');
     },
     'dig deeper': async () => {
       await typewriterEffect('> Excavating hidden files...', 'response');
-      await typewriterEffect('', 'response');
       await typewriterEffect('🔍 SNEAK PEEK: The art is ready. The collection breathes in darkness.', 'response');
       await typewriterEffect('Each bear carries the scars of what came before. No two deaths are alike.', 'response');
-      await typewriterEffect('', 'response');
       await typewriterEffect('Mint date: When the dead decide. Not before.', 'response');
       await typewriterEffect('Supply: Fewer than you think. More than you deserve.', 'response');
     },
@@ -115,9 +121,7 @@ const typewriterEffect = async (text: string, type: OutputLine['type'] = 'respon
       const riddle = riddles[Math.floor(Math.random() * riddles.length)];
       setCurrentRiddle(riddle);
       await typewriterEffect('> The void poses a question...', 'response');
-      await typewriterEffect('', 'response');
       await typewriterEffect(riddle.q, 'response');
-      await typewriterEffect('', 'response');
       await typewriterEffect('(Type your answer below)', 'response');
     },
     secret: async () => {
@@ -138,7 +142,7 @@ const typewriterEffect = async (text: string, type: OutputLine['type'] = 'respon
       await typewriterEffect('> 🔥 EASTER EGG UNLOCKED 🔥', 'success');
       await typewriterEffect('> "In death, we find truth. In fire, we find rebirth."', 'response');
       await typewriterEffect('> The first 100 bears to burn their Okay Bears will receive a special airdrop.', 'response');
-      await typewriterEffect('> This message will self-destruct. Screenshot it if you dare.', 'response');
+      await typewriterEffect('> Screenshot it if you dare.', 'response');
     },
     clear: async () => {
       setOutput([]);
@@ -146,38 +150,33 @@ const typewriterEffect = async (text: string, type: OutputLine['type'] = 'respon
     },
   };
 
-  // Handle user input
+  // Handle input
   const handleCommand = async (cmd: string) => {
     const trimmedCmd = cmd.trim().toLowerCase();
 
-    // Add command to output
     setOutput(prev => [...prev, { text: `$ ${cmd}`, type: 'command' }]);
 
-    // Handle secret mode
+    // Secret mode username
     if (secretMode && !username) {
       if (!trimmedCmd) return;
       setUsername(cmd.trim());
       await typewriterEffect(`> Welcome, ${cmd.trim()}. Now enter the secret word to proceed...`, 'response');
       return;
     }
+
+    // Secret mode secret word
     if (secretMode && username) {
       if (trimmedCmd === 'deadbear' || trimmedCmd === 'dead bear') {
         const rewardType = determineReward();
         const code = generateCode(rewardType);
         setReward({ type: rewardType, code });
         await typewriterEffect('> Access granted. Generating reward...', 'success');
-        await typewriterEffect('', 'response');
         await typewriterEffect('🎉 CONGRATULATIONS! 🎉', 'success');
-        if (rewardType === 'FREE_NFT') {
-          await typewriterEffect(`> ${username}, you've unlocked a FREE DEAD BEARS NFT!`, 'success');
-        } else if (rewardType === 'WHITELIST') {
-          await typewriterEffect(`> ${username}, you've been added to the WHITELIST!`, 'success');
-        } else {
-          await typewriterEffect(`> ${username}, you've earned OG status!`, 'success');
-        }
-        await typewriterEffect('', 'response');
+        if (rewardType === 'FREE_NFT') await typewriterEffect(`> ${username}, you've unlocked a FREE DEAD BEARS NFT!`, 'success');
+        else if (rewardType === 'WHITELIST') await typewriterEffect(`> ${username}, you've been added to the WHITELIST!`, 'success');
+        else await typewriterEffect(`> ${username}, you've earned OG status!`, 'success');
+
         await typewriterEffect(`> Your unique code: ${code}`, 'success');
-        await typewriterEffect('', 'response');
         await typewriterEffect('> TO CLAIM: Open a ticket in Discord and provide this screenshot.', 'response');
         setSecretMode(false);
       } else {
@@ -186,27 +185,24 @@ const typewriterEffect = async (text: string, type: OutputLine['type'] = 'respon
       return;
     }
 
-    // Handle riddle answer
-if (currentRiddle) {
-  const answer = currentRiddle.a.toLowerCase().replace(/\s+/g, '');
-  const userAnswer = trimmedCmd.replace(/\s+/g, '');
-  if (userAnswer === answer) {
-    await typewriterEffect('Correct! The void acknowledges your wisdom. ✨', 'success');
-    await typewriterEffect('You have solved the riddle! 🎉', 'success');
-    // optionally, give a reward here
-  } else {
-    await typewriterEffect(`Wrong... The answer was: ${currentRiddle.a}`, 'error');
-  }
-  setCurrentRiddle(null);
-  return;
-}
+    // Riddle answer
+    if (currentRiddle) {
+      const answer = currentRiddle.a.toLowerCase().replace(/\s+/g, '');
+      const userAnswer = trimmedCmd.replace(/\s+/g, '');
+      if (userAnswer === answer) {
+        await typewriterEffect('Correct! The void acknowledges your wisdom. ✨', 'success');
+        await typewriterEffect('You have solved the riddle! 🎉', 'success');
+      } else {
+        await typewriterEffect(`Wrong... The answer was: ${currentRiddle.a}`, 'error');
+      }
+      setCurrentRiddle(null);
+      return;
+    }
 
-
-
-    // Handle normal commands
+    // Regular commands
     if (commands[trimmedCmd]) {
       await commands[trimmedCmd]();
-    } else if (!trimmedCmd) {
+    } else if (trimmedCmd === '') {
       return;
     } else {
       await typewriterEffect(`> The shadows do not understand "${cmd}"... 💀`, 'error');
