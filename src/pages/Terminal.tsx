@@ -30,6 +30,7 @@ const Terminal = () => {
   const [username, setUsername] = useState('');
   const [reward, setReward] = useState<{ type: RewardType; code: string } | null>(null);
   const [currentRiddle, setCurrentRiddle] = useState<{ q: string; a: string } | null>(null);
+  const [riddleReward, setRiddleReward] = useState<{ text: string } | null>(null);
 
   const outputEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -62,25 +63,22 @@ const Terminal = () => {
     return 'OG';
   };
 
-  // Typewriter effect (smooth, no flicker)
+  // Typewriter effect
   const typewriterEffect = async (text: string, type: OutputLine['type'] = 'response') => {
     setIsTyping(true);
     setOutput(prev => [...prev, { text: '', type: 'typing' }]);
-    let index = output.length; // line to update
     let currentText = '';
 
     for (let i = 0; i < text.length; i++) {
       currentText += text[i];
       setOutput(prev => {
         const newOutput = [...prev];
-        // update only the last line
         newOutput[newOutput.length - 1] = { text: currentText, type: 'typing' };
         return newOutput;
       });
       await new Promise(r => setTimeout(r, 25));
     }
 
-    // finalize line
     setOutput(prev => {
       const newOutput = [...prev];
       newOutput[newOutput.length - 1] = { text, type };
@@ -150,7 +148,6 @@ const Terminal = () => {
     },
   };
 
-  // Handle input
   const handleCommand = async (cmd: string) => {
     const trimmedCmd = cmd.trim().toLowerCase();
 
@@ -192,6 +189,9 @@ const Terminal = () => {
       if (userAnswer === answer) {
         await typewriterEffect('Correct! The void acknowledges your wisdom. ✨', 'success');
         await typewriterEffect('You have solved the riddle! 🎉', 'success');
+
+        const text = `I just solved a Dead Bears riddle in the Ritual Terminal! 💀\n\nCheck yours at deadbears.xyz/terminal\n\n#DeadBearsNFT`;
+        setRiddleReward({ text });
       } else {
         await typewriterEffect(`Wrong... The answer was: ${currentRiddle.a}`, 'error');
       }
@@ -218,10 +218,7 @@ const Terminal = () => {
     }
   };
 
-  const handleShare = () => {
-    if (!reward || !username) return;
-    const rewardText = reward.type === 'FREE_NFT' ? 'FREE NFT' : reward.type === 'WHITELIST' ? 'WHITELIST spot' : 'OG status';
-    const text = `I just unlocked ${rewardText} in the Dead Bears Ritual Terminal! 💀\n\nCheck yours at deadbears.xyz/terminal\n\n#DeadBearsNFT`;
+  const handleShare = (text: string) => {
     const url = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}`;
     window.open(url, '_blank');
   };
@@ -251,10 +248,19 @@ const Terminal = () => {
           <div ref={outputEndRef} />
         </div>
 
+        {/* Secret / riddle rewards */}
         {reward && (
           <div className="mb-4 p-4 border border-green-400 bg-green-400/5">
-            <Button onClick={handleShare} className="w-full bg-green-400 text-black hover:bg-green-500 font-bold">
+            <Button onClick={() => handleShare(`I just unlocked a ${reward.type} reward in Dead Bears Ritual Terminal! 💀\n\nCheck yours at deadbears.xyz/terminal\n\n#DeadBearsNFT`)} className="w-full bg-green-400 text-black hover:bg-green-500 font-bold">
               📢 SHARE ON TWITTER
+            </Button>
+          </div>
+        )}
+
+        {riddleReward && (
+          <div className="mb-4 p-4 border border-green-400 bg-green-400/5">
+            <Button onClick={() => { handleShare(riddleReward.text); setRiddleReward(null); }} className="w-full bg-green-400 text-black hover:bg-green-500 font-bold">
+              📢 SHARE YOUR RIDDLE SUCCESS ON TWITTER
             </Button>
           </div>
         )}
