@@ -142,7 +142,7 @@ useEffect(() => {
     burn: async () => {
       await typewriterEffect('> 🔥 EASTER EGG UNLOCKED 🔥', 'success');
       await typewriterEffect('> "In death, we find truth. In fire, we find rebirth."', 'response');
-      await typewriterEffect('> The first 100 bears to burn their Okay Bears will receive a special airdrop.', 'response');
+      await typewriterEffect('> Only the first 100 bears to invoke the ritual will receive a **special reward**.', 'response');
       await typewriterEffect('> Screenshot it if you dare.', 'response');
     },
     clear: async () => {
