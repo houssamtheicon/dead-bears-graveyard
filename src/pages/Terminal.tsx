@@ -125,7 +125,7 @@ const Terminal = () => {
       await typewriterEffect('', 'response');
       await typewriterEffect(riddle.q, 'response');
       await typewriterEffect('', 'response');
-      await typewriterEffect(`(The answer is: ${riddle.a})`, 'success');
+      // await typewriterEffect(`(The answer is: ${riddle.a})`, 'success');
     },
     
     secret: async () => {
