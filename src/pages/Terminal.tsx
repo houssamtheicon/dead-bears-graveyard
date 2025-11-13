@@ -8,44 +8,43 @@ import { Copy, Check, Twitter, HelpCircle, Home } from 'lucide-react';
 
 type RewardType = 'OG' | 'WL';
 
-const secretWords = [
-  'obitus', 'revenant', 'sigilium', 'ashenfoil', 'marrowroot',
-  'threshold', 'limina', 'duskbridge', 'hollowgate', 'nethercall',
-  'rite', 'hymn', 'talon', 'voidkey', 'hush',
-  'soulwax', 'tombdrop', 'echojar', 'cryptnote', 'nightseed'
-];
-
-const loreFragments = [
-  'In death, we find truth. In fire, we find rebirth.',
-  'The dead do not sleep. They wait. They watch. They whisper.',
-  'Every bear that falls rises stronger in the void.',
-  'The ritual has begun. Only the worthy may proceed.',
-  'Beyond the veil lies the truth. Beyond truth lies power.',
-  'We are the echoes of what was. We are the promise of what comes.',
-  'The graveyard is not an end. It is a beginning.',
-  'Speak the words, and the shadows will answer.'
-];
+// ⛔️ DELETED the secretWords and loreFragments arrays.
+// They are now safe on the backend.
 
 const Terminal = () => {
   const [input, setInput] = useState('');
-  const [currentLore, setCurrentLore] = useState('');
+  const [currentLore, setCurrentLore] = useState('Loading whispers...'); // New loading state
   const [showModal, setShowModal] = useState(false);
   const [reward, setReward] = useState<{ type: RewardType; code: string } | null>(null);
   const [attempts, setAttempts] = useState(0);
   const [isThrottled, setIsThrottled] = useState(false);
   const [chargeProgress, setChargeProgress] = useState(0);
-  const [remainingWL, setRemainingWL] = useState(200);
+  const [remainingWL, setRemainingWL] = useState(200); // Note: This is still on the frontend
   const [showHelp, setShowHelp] = useState(false);
   const [copiedCode, setCopiedCode] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
 
   const inputRef = useRef<HTMLInputElement>(null);
 
-  // Rotate lore on mount
+  // ✅ MODIFIED: Fetches one random lore fragment from your API
   useEffect(() => {
-    const randomLore = loreFragments[Math.floor(Math.random() * loreFragments.length)];
-    setCurrentLore(randomLore);
-  }, []);
+    const fetchLore = async () => {
+      try {
+        const response = await fetch('/api/terminal-api'); // Calls your new API
+        const data = await response.json();
+        if (response.ok) {
+          setCurrentLore(data.lore);
+        } else {
+          setCurrentLore('The shadows are silent...');
+        }
+      } catch (error) {
+        console.error('Failed to fetch lore:', error);
+        setCurrentLore('Connection to the void has been lost...');
+      }
+    };
+    
+    fetchLore();
+  }, []); // Runs once on page load
 
   // Focus input on load
   useEffect(() => {
@@ -58,23 +57,11 @@ const Terminal = () => {
     setChargeProgress(progress);
   }, [input]);
 
-  // Generate unique code
-  const generateCode = (type: RewardType) => {
-    const timestamp = Date.now().toString(36).toUpperCase();
-    const random = Math.random().toString(36).substring(2, 6).toUpperCase();
-    return `RITUAL-${timestamp}-${random}`;
-  };
+  // ⛔️ DELETED generateCode and determineReward functions.
+  // They are now safe on the backend.
 
-  // Determine reward (22 OG or WL spot)
-  const determineReward = (): RewardType => {
-    const rand = Math.random() * 100;
-    if (rand < 10 && remainingWL > 0) {
-      return 'OG'; // 10% chance for OG
-    }
-    return 'WL'; // 90% chance for WL
-  };
-
-  const handleSubmit = (e: React.FormEvent) => {
+  // ✅ MODIFIED: handleSubmit now calls your API to check the word
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     const trimmedInput = input.trim().toLowerCase();
@@ -82,7 +69,7 @@ const Terminal = () => {
     // Log attempt
     console.log(`[Analytics] Attempt #${attempts + 1}: "${trimmedInput}"`);
 
-    // Throttle check
+    // Throttle check (this is good to keep on the frontend)
     if (isThrottled) {
       setErrorMessage('The shadows grow weary... Wait a moment before trying again. 💀');
       setTimeout(() => setErrorMessage(''), 3000);
@@ -100,32 +87,51 @@ const Terminal = () => {
       return;
     }
 
-    // Check secret word
-    if (secretWords.includes(trimmedInput)) {
-      const rewardType = determineReward();
-      const code = generateCode(rewardType);
-      
-      setReward({ type: rewardType, code });
-      setShowModal(true);
-      setInput('');
-      setChargeProgress(0);
+    // Check secret word via API
+    try {
+      const response = await fetch('/api/terminal-api', { // Calls your new API
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ word: trimmedInput }), // Sends the word to the server
+      });
 
-      // Update remaining WL if WL was awarded
-      if (rewardType === 'WL') {
-        setRemainingWL(prev => Math.max(0, prev - 1));
+      const data = await response.json();
+
+      if (response.ok && data.success) {
+        // SUCCESS! Server approved the word.
+        setReward(data.reward); // Use the reward sent from the server
+        setShowModal(true);
+        setInput('');
+        setChargeProgress(0);
+
+        if (data.reward.type === 'WL') {
+          setRemainingWL(prev => Math.max(0, prev - 1));
+        }
+
+        console.log(`[Analytics] SUCCESS: Word "${trimmedInput}" → ${data.reward.type} → Code: ${data.reward.code}`);
+      
+      } else {
+        // FAILED! Server rejected the word.
+        setAttempts(prev => prev + 1);
+        setErrorMessage(data.message || 'That word holds no power here. 💀');
+        setTimeout(() => setErrorMessage(''), 3000);
+        
+        console.log(`[Analytics] FAILED: "${trimmedInput}" not recognized`);
       }
-
-      // Log success
-      console.log(`[Analytics] SUCCESS: Word "${trimmedInput}" → ${rewardType} → Code: ${code}`);
-    } else {
-      setAttempts(prev => prev + 1);
-      setErrorMessage('The void rejects your offering... That word holds no power here. 💀');
+    } catch (error) {
+      // Network or server error
+      console.error('API call failed:', error);
+      setErrorMessage('The ritual is disturbed. Check your connection. 💀');
       setTimeout(() => setErrorMessage(''), 3000);
-      
-      // Log failed attempt
-      console.log(`[Analytics] FAILED: "${trimmedInput}" not recognized`);
     }
   };
+
+  // ---
+  // NO CHANGES needed from this point down.
+  // All your local functions and JSX (HTML) are perfect.
+  // ---
 
   const copyCode = () => {
     if (reward) {
