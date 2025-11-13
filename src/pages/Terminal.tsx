@@ -144,7 +144,7 @@ const Terminal = () => {
 
   const shareOnTwitter = () => {
     if (reward) {
-      const tweetText = `I just activated the Ritual Terminal — here's my claim code: ${reward.code} 🔮\n@theDeadBearsNFT #RitualTerminal #DeadBears`;
+      const tweetText = `I just activated the Ritual Terminal — here's my claim code: ${reward.code} 🔮\nGet yours here: https://www.deadbears.xyz/terminal \n\n@theDeadBearsNFT #RitualTerminal #DeadBears`;
       const url = `https://twitter.com/intent/tweet?text=${encodeURIComponent(tweetText)}`;
       window.open(url, '_blank');
       
