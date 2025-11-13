@@ -59,9 +59,9 @@ const Navbar = () => {
           asChild
           className="font-medium"
         >
-          <Link to="/terminal">
-            Enter Terminal
-          </Link>
+          <a href="https://discord.com/invite/JBApX5VPzN" target="_blank" rel="noopener noreferrer">
+            Join Discord
+          </a>
         </Button>
       </div>
     </nav>
