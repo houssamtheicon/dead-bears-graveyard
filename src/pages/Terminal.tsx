@@ -1,55 +1,54 @@
 import { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Dialog, DialogContent } from '@/components/ui/dialog';
+import { Link } from 'react-router-dom';
+import { toast } from '@/hooks/use-toast';
 
-type OutputLine = {
-  text: string;
-  type: 'command' | 'response' | 'error' | 'success' | 'typing';
-};
+type RewardType = 'OG' | 'WL';
 
-type RewardType = 'OG' | 'WHITELIST' | 'FREE_NFT';
+const secretWords = [
+  'obitus', 'revenant', 'sigilium', 'ashenfoil', 'marrowroot',
+  'threshold', 'limina', 'duskbridge', 'hollowgate', 'nethercall',
+  'rite', 'hymn', 'talon', 'voidkey', 'hush',
+  'soulwax', 'tombdrop', 'echojar', 'cryptnote', 'nightseed'
+];
 
-const riddles = [
-  { q: 'I am not alive, but I grow. I don\'t have lungs, but I need air. What am I?', a: 'fire' },
-  { q: 'The more you take, the more you leave behind. What am I?', a: 'footsteps' },
-  { q: 'I speak without a mouth and hear without ears. I have no body, but I come alive with wind. What am I?', a: 'echo' },
-  { q: 'What can run but never walks, has a mouth but never talks, has a head but never weeps, has a bed but never sleeps?', a: 'river' },
+const loreFragments = [
+  'In death, we find truth. In fire, we find rebirth.',
+  'The dead do not sleep. They wait. They watch. They whisper.',
+  'Every bear that falls rises stronger in the void.',
+  'The ritual has begun. Only the worthy may proceed.',
+  'Beyond the veil lies the truth. Beyond truth lies power.',
+  'We are the echoes of what was. We are the promise of what comes.',
+  'The graveyard is not an end. It is a beginning.',
+  'Speak the words, and the shadows will answer.'
 ];
 
 const Terminal = () => {
-  const [output, setOutput] = useState<OutputLine[]>([
-    { text: '> DEAD BEARS RITUAL TERMINAL v1.0', type: 'response' },
-    { text: '> Initializing...', type: 'response' },
-    { text: '> Connection established. The dead are listening.', type: 'success' },
-    { text: '> Type "help" to see available commands.', type: 'response' },
-    { text: '', type: 'response' },
-  ]);
   const [input, setInput] = useState('');
-  const [isTyping, setIsTyping] = useState(false);
-  const [secretMode, setSecretMode] = useState(false);
-  const [username, setUsername] = useState('');
+  const [currentLore, setCurrentLore] = useState('');
+  const [showModal, setShowModal] = useState(false);
   const [reward, setReward] = useState<{ type: RewardType; code: string } | null>(null);
-  const [currentRiddle, setCurrentRiddle] = useState<{ q: string; a: string } | null>(null);
-  const [riddleReward, setRiddleReward] = useState<{ text: string } | null>(null);
+  const [attempts, setAttempts] = useState(0);
+  const [isThrottled, setIsThrottled] = useState(false);
+  const [chargeProgress, setChargeProgress] = useState(0);
+  const [remainingWL, setRemainingWL] = useState(200);
+  const [showHelp, setShowHelp] = useState(false);
+  const [copiedCode, setCopiedCode] = useState(false);
 
-  const outputEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
-// Always keep input focused unless typing
-useEffect(() => {
-  if (!isTyping) {
-    const t = setTimeout(() => inputRef.current?.focus(), 0);
-    return () => clearTimeout(t);
-  }
-}, [isTyping, output]);
+  // Rotate lore on mount
+  useEffect(() => {
+    const randomLore = loreFragments[Math.floor(Math.random() * loreFragments.length)];
+    setCurrentLore(randomLore);
+  }, []);
 
-
-// Always keep input focused unless typing
-useEffect(() => {
-  if (!isTyping) {
+  // Focus input on load
+  useEffect(() => {
     inputRef.current?.focus();
-  }
-}, [isTyping, output]);
+  }, []);
 
   // Generate unique code
   const generateCode = (type: RewardType) => {
