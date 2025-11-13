@@ -142,11 +142,22 @@ const Terminal = () => {
     }
   };
 
-  const shareOnTwitter = () => {
-    if (reward) {
-      const tweetText = `I just activated the Ritual Terminal \n\nhere's my claim code: ${reward.code} 🔮 \n\nGet yours here: https://www.deadbears.xyz/terminal \n\n@theDeadBearsNFT #RitualTerminal #DeadBears`;
-      const url = `https://twitter.com/intent/tweet?text=${encodeURIComponent(tweetText)}`;
-      window.open(url, '_blank');
+const shareOnTwitter = () => {
+  if (reward) {
+    // Build tweet text with real newlines
+    const tweetText = `I just activated the Ritual Terminal
+
+here's my claim code: ${reward.code} 🔮
+
+Get yours here: https://www.deadbears.xyz/terminal
+
+@theDeadBearsNFT #RitualTerminal #DeadBears`;
+
+    // Encode the text for Twitter
+    const url = `https://twitter.com/intent/tweet?text=${encodeURIComponent(tweetText)}`;
+
+    // Open Twitter intent in a new tab
+    window.open(url, '_blank');
       
       // Log share action
       console.log(`[Analytics] Twitter share clicked for ${reward.code}`);
