@@ -23,8 +23,8 @@ import { Progress } from "@/components/ui/progress";
 
 // Constants
 const TOTAL_SUPPLY = 2222;
-const BATCH_SIZE = 50;
-const ONE_OF_ONE_IDS = [0, 1, 2, 3, 4, 5, 6, 7];
+const BATCH_SIZE = 2222;
+const ONE_OF_ONE_IDS = [2054, 1876, 1597, 1140, 1231, 1044, 424, 1647];
 const METADATA_BASE = "https://gateway.pinata.cloud/ipfs/bafybeifspz7rgzbrwvuoqsa5jepafex5p5x7lt4uyn2kfbkigptg4ebqgy";
 const IMAGE_BASE = "https://gateway.pinata.cloud/ipfs/bafybeih7353uke62onbpb2mac4fvko4iipd6puelmzk7etzamkbx3yzavq";
 
