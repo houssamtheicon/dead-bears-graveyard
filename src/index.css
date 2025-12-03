@@ -67,6 +67,96 @@ All colors MUST be HSL.
   }
 }
 
+  /* Gallery Page Dark Theme */
+  .gallery-page {
+    --gallery-bg: 0 0% 4%;
+    --gallery-card: 0 0% 8%;
+    --gallery-card-footer: 0 0% 6%;
+    --gallery-border: 0 0% 15%;
+    --gallery-text: 0 0% 88%;
+    --gallery-muted: 0 0% 50%;
+    --gallery-accent: 0 70% 50%;
+    --gallery-accent-glow: 0 70% 50% / 0.4;
+    
+    background-color: hsl(var(--gallery-bg));
+    color: hsl(var(--gallery-text));
+  }
+
+  .gallery-header {
+    background-color: hsl(var(--gallery-bg) / 0.9);
+  }
+
+  .gallery-input {
+    background-color: hsl(var(--gallery-card));
+    border-color: hsl(var(--gallery-border));
+    color: hsl(var(--gallery-text));
+  }
+
+  .gallery-input:focus {
+    border-color: hsl(var(--gallery-accent));
+    box-shadow: 0 0 0 2px hsl(var(--gallery-accent-glow));
+  }
+
+  .gallery-button {
+    background-color: hsl(var(--gallery-card));
+    border-color: hsl(var(--gallery-border));
+    color: hsl(var(--gallery-text));
+  }
+
+  .gallery-button:hover {
+    background-color: hsl(var(--gallery-border));
+    border-color: hsl(var(--gallery-accent));
+  }
+
+  .gallery-dropdown {
+    background-color: hsl(var(--gallery-card));
+    border-color: hsl(var(--gallery-border));
+    color: hsl(var(--gallery-text));
+  }
+
+  .gallery-sheet {
+    background-color: hsl(var(--gallery-bg));
+    border-color: hsl(var(--gallery-border));
+  }
+
+  .gallery-card {
+    background-color: hsl(var(--gallery-card));
+    border: 1px solid hsl(var(--gallery-border));
+  }
+
+  .gallery-card:hover {
+    border-color: hsl(var(--gallery-accent));
+    box-shadow: 0 0 20px hsl(var(--gallery-accent-glow)), 
+                0 0 40px hsl(var(--gallery-accent-glow));
+  }
+
+  .gallery-card-footer {
+    background-color: hsl(var(--gallery-card-footer));
+  }
+
+  .gallery-badge-accent {
+    background-color: hsl(var(--gallery-accent));
+    color: white;
+  }
+
+  .gallery-badge-legendary {
+    background: linear-gradient(135deg, hsl(45 100% 50%), hsl(35 100% 45%), hsl(0 70% 50%));
+    color: white;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+  }
+
+  .gallery-switch[data-state="checked"] {
+    background-color: hsl(var(--gallery-accent));
+  }
+
+  .gallery-progress {
+    background-color: hsl(var(--gallery-border));
+  }
+
+  .gallery-progress [data-state] {
+    background-color: hsl(var(--gallery-accent));
+  }
+
 @layer utilities {
   .grain {
     background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='3.5' numOctaves='4' /%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.03'/%3E%3C/svg%3E");
