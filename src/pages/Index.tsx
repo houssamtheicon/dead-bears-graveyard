@@ -175,7 +175,7 @@ const Gallery = () => {
   const [displayedNFTs, setDisplayedNFTs] = useState<NFT[]>([]);
   const [loadedCount, setLoadedCount] = useState(0);
   const [displayCount, setDisplayCount] = useState(INITIAL_LOAD);
-  const [initialLoading, setInitialLoading] = useState(true);
+  const [initialLoading, setInitialLoading] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
   const [selectedNFT, setSelectedNFT] = useState<NFT | null>(null);
   
