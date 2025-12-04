@@ -224,14 +224,16 @@ const Gallery = () => {
     return result;
   }, [traitStats]);
 
-  // Initial load + background prefetch
-  useEffect(() => {
-    const loadNFTs = async () => {
+  // Initial load + background prefetch - FIXED VERSION
+useEffect(() => {
+  const loadNFTs = async () => {
+    try {
       setInitialLoading(true);
       
       // Load first batch immediately (50 NFTs)
+      const initialIds = Array.from({ length: INITIAL_LOAD }, (_, i) => i);
       const initialBatch = await Promise.allSettled(
-        Array.from({ length: INITIAL_LOAD }, (_, i) => fetchNFT(i))
+        initialIds.map(id => fetchNFT(id))
       );
       
       const initialNFTs = initialBatch
@@ -241,16 +243,20 @@ const Gallery = () => {
       
       setAllNFTs(initialNFTs);
       setLoadedCount(initialNFTs.length);
+      
+      // IMPORTANT: Turn off loading screen immediately
       setInitialLoading(false);
       
       // Background prefetch remaining NFTs in chunks
       const prefetchInBackground = async () => {
         for (let i = INITIAL_LOAD; i < TOTAL_SUPPLY; i += PREFETCH_SIZE) {
+          const batchIds = Array.from(
+            { length: Math.min(PREFETCH_SIZE, TOTAL_SUPPLY - i) },
+            (_, j) => i + j
+          );
+          
           const batch = await Promise.allSettled(
-            Array.from(
-              { length: Math.min(PREFETCH_SIZE, TOTAL_SUPPLY - i) },
-              (_, j) => fetchNFT(i + j)
-            )
+            batchIds.map(id => fetchNFT(id))
           );
           
           const newNFTs = batch
@@ -266,11 +272,20 @@ const Gallery = () => {
         }
       };
       
-      prefetchInBackground();
-    };
+      // Start background prefetch but don't wait for it
+      prefetchInBackground().catch(err => {
+        console.error("Background prefetch error:", err);
+      });
+      
+    } catch (error) {
+      console.error("Initial load failed:", error);
+      setInitialLoading(false); // Make sure to hide loading screen even on error
+    }
+  };
 
-    loadNFTs();
-  }, []);
+  loadNFTs();
+}, []);
+
 
   // Filter and sort NFTs
   const filteredNFTs = useMemo(() => {
