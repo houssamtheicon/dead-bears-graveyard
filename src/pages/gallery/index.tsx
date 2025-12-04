@@ -14,10 +14,28 @@ import { Link } from "react-router-dom";
 
 // Constants
 const TOTAL_SUPPLY = 2222;
-const BATCH_SIZE = 30;
+const BATCH_SIZE = 15;
 const ONE_OF_ONE_IDS = [424, 1044, 1140, 1231, 1597, 1647, 1876, 2054];
-const METADATA_BASE = "https://gateway.pinata.cloud/ipfs/bafybeifspz7rgzbrwvuoqsa5jepafex5p5x7lt4uyn2kfbkigptg4ebqgy";
-const IMAGE_BASE = "https://gateway.pinata.cloud/ipfs/bafybeih7353uke62onbpb2mac4fvko4iipd6puelmzk7etzamkbx3yzavq";
+
+const GATEWAYS = [
+  "https://gateway.pinata.cloud/ipfs",
+  "https://cloudflare-ipfs.com/ipfs",
+  "https://ipfs.io/ipfs",
+  "https://dweb.link/ipfs"
+];
+
+const METADATA_HASH = "bafybeifspz7rgzbrwvuoqsa5jepafex5p5x7lt4uyn2kfbkigptg4ebqgy";
+const IMAGE_HASH = "bafybeih7353uke62onbpb2mac4fvko4iipd6puelmzk7etzamkbx3yzavq";
+
+let currentGatewayIndex = 0;
+
+const getMetadataUrl = (id: number) => {
+  return `${GATEWAYS[currentGatewayIndex]}/${METADATA_HASH}/${id}.json`;
+};
+
+const getImageUrl = (id: number) => {
+  return `${GATEWAYS[currentGatewayIndex]}/${IMAGE_HASH}/${id}.png`;
+};
 
 // Types
 interface Attribute {
@@ -110,23 +128,29 @@ const FilterCheckbox = ({
   </button>
 );
 
-// Fetch with retry
-const fetchWithRetry = async (url: string, retries = 3, delay = 500): Promise<Response> => {
+// Fetch with retry and gateway rotation
+const fetchWithRetry = async (url: string, retries = 5): Promise<Response> => {
   for (let i = 0; i < retries; i++) {
     try {
       const res = await fetch(url);
       if (res.ok) return res;
-      if (res.status === 429) {
-        await new Promise(r => setTimeout(r, delay * (i + 1)));
+      
+      // Rate limited or service unavailable - switch gateway
+      if (res.status === 429 || res.status === 503) {
+        currentGatewayIndex = (currentGatewayIndex + 1) % GATEWAYS.length;
+        console.log(`⚠️ Switching to gateway: ${GATEWAYS[currentGatewayIndex]}`);
+        await new Promise(r => setTimeout(r, 2000 * Math.pow(1.5, i)));
         continue;
       }
       throw new Error(`HTTP ${res.status}`);
     } catch (e) {
       if (i === retries - 1) throw e;
-      await new Promise(r => setTimeout(r, delay * (i + 1)));
+      // Switch gateway on any error
+      currentGatewayIndex = (currentGatewayIndex + 1) % GATEWAYS.length;
+      await new Promise(r => setTimeout(r, 1000 * Math.pow(1.5, i)));
     }
   }
-  throw new Error("Max retries");
+  throw new Error("Max retries exceeded");
 };
 
 const Gallery = () => {
@@ -178,7 +202,7 @@ const Gallery = () => {
     return result;
   }, [traitStats]);
 
-  // Load NFTs with controlled concurrency and retry
+  // Load NFTs with improved error handling and gateway rotation
   useEffect(() => {
     const loadNFTs = async () => {
       setLoading(true);
@@ -193,15 +217,17 @@ const Gallery = () => {
         const batchResults = await Promise.allSettled(
           batchIds.map(async (id) => {
             try {
-              const res = await fetchWithRetry(`${METADATA_BASE}/${id}.json`);
+              const metadataUrl = getMetadataUrl(id);
+              const res = await fetchWithRetry(metadataUrl);
               const metadata: NFTMetadata = await res.json();
               return {
                 ...metadata,
                 id,
-                imageUrl: `${IMAGE_BASE}/${id}.png`,
+                imageUrl: getImageUrl(id),
                 isOneOfOne: ONE_OF_ONE_IDS.includes(id),
               } as NFT;
-            } catch {
+            } catch (error) {
+              console.warn(`Failed to load NFT #${id}:`, error);
               return null;
             }
           })
@@ -216,13 +242,14 @@ const Gallery = () => {
         setNfts([...allNFTs]);
         setLoadedCount(allNFTs.length);
         
-        // Small delay between batches to avoid rate limiting
+        // Delay between batches to avoid overwhelming gateways
         if (i + BATCH_SIZE < TOTAL_SUPPLY) {
-          await new Promise(r => setTimeout(r, 100));
+          await new Promise(r => setTimeout(r, 300));
         }
       }
       
       setLoading(false);
+      console.log(`✅ Successfully loaded ${allNFTs.length} / ${TOTAL_SUPPLY} NFTs`);
     };
 
     loadNFTs();
@@ -292,25 +319,45 @@ const Gallery = () => {
   const activeFiltersCount = Object.values(selectedTraits).reduce((acc, arr) => acc + arr.length, 0) + 
     (showOneOfOneOnly ? 1 : 0);
 
-  // Get rarity label
+  // Get rarity label - UPDATED WITH CORRECT RARITIES
   const getRarityLabel = (percentage: number): string => {
-    if (percentage <= 1) return "LEGENDARY";
-    if (percentage <= 5) return "SUPER RARE";
-    if (percentage <= 10) return "RARE";
-    if (percentage <= 25) return "UNCOMMON";
+    if (percentage <= 5) return "LEGENDARY";
+    if (percentage <= 10) return "EPIC";
+    if (percentage <= 25) return "RARE";
     return "COMMON";
   };
 
   const getRarityColor = (percentage: number): string => {
-    if (percentage <= 1) return "text-[#ff4444]";
-    if (percentage <= 5) return "text-[#ff8844]";
-    if (percentage <= 10) return "text-[#44aaff]";
-    if (percentage <= 25) return "text-[#44ff88]";
-    return "text-[#888888]";
+    if (percentage <= 5) return "text-[#ff4444]";  // Legendary - Red
+    if (percentage <= 10) return "text-[#9333ea]"; // Epic - Purple
+    if (percentage <= 25) return "text-[#3b82f6]"; // Rare - Blue
+    return "text-[#6b7280]"; // Common - Gray
   };
 
   return (
     <div className="min-h-screen bg-[#0a0a0a]">
+      {/* Loading Overlay */}
+      {loading && (
+        <div className="fixed inset-0 z-50 bg-[#0a0a0a] flex items-center justify-center">
+          <div className="text-center">
+            <Loader2 className="w-12 h-12 animate-spin text-[#ff4444] mx-auto mb-4" />
+            <p className="text-[#e0e0e0] text-xl mb-2">Loading Dead Bears...</p>
+            <p className="text-[#ff4444] text-3xl font-mono mb-4">
+              {loadedCount} / {TOTAL_SUPPLY}
+            </p>
+            <div className="w-64 bg-[#2a2a2a] rounded-full h-3 mx-auto overflow-hidden">
+              <div 
+                className="bg-gradient-to-r from-[#ff4444] to-[#ff8844] h-3 transition-all duration-300"
+                style={{ width: `${(loadedCount / TOTAL_SUPPLY) * 100}%` }}
+              />
+            </div>
+            <p className="text-[#606060] text-sm mt-2">
+              {Math.floor((loadedCount / TOTAL_SUPPLY) * 100)}% complete
+            </p>
+          </div>
+        </div>
+      )}
+
       <div className="flex">
         {/* Sidebar */}
         <aside className="w-56 lg:w-64 min-h-screen bg-[#0f0f0f] border-r border-[#2a2a2a] flex-shrink-0 sticky top-0 h-screen overflow-y-auto hidden md:block">
