@@ -82,17 +82,19 @@ const FilterCheckbox = ({
   label, 
   checked, 
   onChange,
-  count,
   percentage
 }: { 
   label: string; 
   checked: boolean; 
   onChange: () => void;
-  count?: number;
   percentage?: string;
 }) => (
-  <label className="flex items-center gap-2 py-1.5 cursor-pointer group">
-    <div className={`w-4 h-4 border rounded flex items-center justify-center transition-colors ${
+  <button
+    type="button"
+    onClick={onChange}
+    className="w-full flex items-center gap-2 py-1.5 cursor-pointer group text-left"
+  >
+    <div className={`w-4 h-4 border rounded flex items-center justify-center transition-colors flex-shrink-0 ${
       checked ? 'bg-[#ff4444] border-[#ff4444]' : 'border-[#404040] group-hover:border-[#606060]'
     }`}>
       {checked && (
@@ -105,7 +107,7 @@ const FilterCheckbox = ({
     {percentage && (
       <span className="text-[10px] text-[#606060]">{percentage}</span>
     )}
-  </label>
+  </button>
 );
 
 // Fetch with retry
