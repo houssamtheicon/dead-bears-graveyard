@@ -12,7 +12,6 @@ import {
 } from "@/components/ui/select";
 import { Link } from "react-router-dom";
 
-
 // Constants
 const TOTAL_SUPPLY = 2222;
 const BATCH_SIZE = 30;
@@ -20,13 +19,11 @@ const ONE_OF_ONE_IDS = [424, 1044, 1140, 1231, 1597, 1647, 1876, 2054];
 const METADATA_BASE = "https://gateway.pinata.cloud/ipfs/bafybeifspz7rgzbrwvuoqsa5jepafex5p5x7lt4uyn2kfbkigptg4ebqgy";
 const IMAGE_BASE = "https://gateway.pinata.cloud/ipfs/bafybeih7353uke62onbpb2mac4fvko4iipd6puelmzk7etzamkbx3yzavq";
 
-
 // Types
 interface Attribute {
   trait_type: string;
   value: string;
 }
-
 
 interface NFTMetadata {
   name: string;
@@ -36,19 +33,15 @@ interface NFTMetadata {
   attributes: Attribute[];
 }
 
-
 interface NFT extends NFTMetadata {
   id: number;
   imageUrl: string;
   isOneOfOne: boolean;
 }
 
-
 type SortOption = "id-asc" | "id-desc" | "random";
 
-
 const TRAIT_TYPES = ["Background", "Fur", "Clothes", "Mouth", "Eyes", "Hat"];
-
 
 // Filter section component
 const FilterSection = ({ 
@@ -84,25 +77,22 @@ const FilterSection = ({
   );
 };
 
-
 // Checkbox filter option
 const FilterCheckbox = ({ 
   label, 
   checked, 
   onChange,
+  count,
   percentage
 }: { 
   label: string; 
   checked: boolean; 
   onChange: () => void;
+  count?: number;
   percentage?: string;
 }) => (
-  <button
-    type="button"
-    onClick={onChange}
-    className="w-full flex items-center gap-2 py-1.5 cursor-pointer group text-left"
-  >
-    <div className={`w-4 h-4 border rounded flex items-center justify-center transition-colors flex-shrink-0 ${
+  <label className="flex items-center gap-2 py-1.5 cursor-pointer group">
+    <div className={`w-4 h-4 border rounded flex items-center justify-center transition-colors ${
       checked ? 'bg-[#ff4444] border-[#ff4444]' : 'border-[#404040] group-hover:border-[#606060]'
     }`}>
       {checked && (
@@ -115,9 +105,8 @@ const FilterCheckbox = ({
     {percentage && (
       <span className="text-[10px] text-[#606060]">{percentage}</span>
     )}
-  </button>
+  </label>
 );
-
 
 // Fetch with retry
 const fetchWithRetry = async (url: string, retries = 3, delay = 500): Promise<Response> => {
@@ -138,7 +127,6 @@ const fetchWithRetry = async (url: string, retries = 3, delay = 500): Promise<Re
   throw new Error("Max retries");
 };
 
-
 const Gallery = () => {
   const [nfts, setNfts] = useState<NFT[]>([]);
   const [loading, setLoading] = useState(true);
@@ -150,7 +138,6 @@ const Gallery = () => {
   const [showOneOfOneOnly, setShowOneOfOneOnly] = useState(false);
   const [sortOption, setSortOption] = useState<SortOption>("random");
   const [randomSeed] = useState(() => Math.random());
-
 
   // Calculate trait counts and rarity
   const traitStats = useMemo(() => {
@@ -180,7 +167,6 @@ const Gallery = () => {
     return stats;
   }, [nfts]);
 
-
   // Get sorted trait values
   const sortedTraitValues = useMemo(() => {
     const result: Record<string, string[]> = {};
@@ -189,7 +175,6 @@ const Gallery = () => {
     });
     return result;
   }, [traitStats]);
-
 
   // Load NFTs with controlled concurrency and retry
   useEffect(() => {
@@ -238,10 +223,8 @@ const Gallery = () => {
       setLoading(false);
     };
 
-
     loadNFTs();
   }, []);
-
 
   // Toggle trait selection
   const toggleTrait = useCallback((traitType: string, value: string) => {
@@ -253,7 +236,6 @@ const Gallery = () => {
       return { ...prev, [traitType]: newValues };
     });
   }, []);
-
 
   // Filter and sort NFTs
   const filteredNFTs = useMemo(() => {
@@ -299,17 +281,14 @@ const Gallery = () => {
     return result;
   }, [nfts, searchId, showOneOfOneOnly, selectedTraits, sortOption, randomSeed]);
 
-
   const clearFilters = () => {
     setSearchId("");
     setSelectedTraits({});
     setShowOneOfOneOnly(false);
   };
 
-
   const activeFiltersCount = Object.values(selectedTraits).reduce((acc, arr) => acc + arr.length, 0) + 
     (showOneOfOneOnly ? 1 : 0);
-
 
   // Get rarity label
   const getRarityLabel = (percentage: number): string => {
@@ -320,7 +299,6 @@ const Gallery = () => {
     return "COMMON";
   };
 
-
   const getRarityColor = (percentage: number): string => {
     if (percentage <= 1) return "text-[#ff4444]";
     if (percentage <= 5) return "text-[#ff8844]";
@@ -328,7 +306,6 @@ const Gallery = () => {
     if (percentage <= 25) return "text-[#44ff88]";
     return "text-[#888888]";
   };
-
 
   return (
     <div className="min-h-screen bg-[#0a0a0a]">
@@ -343,12 +320,10 @@ const Gallery = () => {
             </Link>
           </div>
 
-
           {/* Filter Header */}
           <div className="p-4 border-b border-[#2a2a2a]">
             <h2 className="text-lg font-semibold text-[#e0e0e0]">Filter</h2>
           </div>
-
 
           {/* Specialty (1/1s) */}
           <FilterSection title="Specialty" defaultOpen={true}>
@@ -359,7 +334,6 @@ const Gallery = () => {
               percentage={`${ONE_OF_ONE_IDS.length}`}
             />
           </FilterSection>
-
 
           {/* Trait Filters */}
           {TRAIT_TYPES.map(traitType => (
@@ -379,7 +353,6 @@ const Gallery = () => {
           ))}
         </aside>
 
-
         {/* Main Content */}
         <main className="flex-1 min-h-screen">
           {/* Top Bar */}
@@ -389,7 +362,6 @@ const Gallery = () => {
               <Link to="/" className="md:hidden p-2 text-[#a0a0a0] hover:text-[#e0e0e0]">
                 <ArrowLeft className="w-5 h-5" />
               </Link>
-
 
               {/* Search */}
               <div className="relative flex-1 min-w-[120px] max-w-xs">
@@ -403,7 +375,6 @@ const Gallery = () => {
                 />
               </div>
 
-
               {/* Active Filters */}
               {activeFiltersCount > 0 && (
                 <button
@@ -414,7 +385,6 @@ const Gallery = () => {
                   <X className="w-3 h-3" />
                 </button>
               )}
-
 
               {/* Sort */}
               <Select value={sortOption} onValueChange={(v) => setSortOption(v as SortOption)}>
@@ -427,7 +397,6 @@ const Gallery = () => {
                   <SelectItem value="id-desc" className="text-[#e0e0e0] focus:bg-[#252525] focus:text-[#e0e0e0]">ID: High → Low</SelectItem>
                 </SelectContent>
               </Select>
-
 
               {/* Stats */}
               <div className="text-sm text-[#606060] ml-auto">
@@ -442,7 +411,6 @@ const Gallery = () => {
               </div>
             </div>
           </div>
-
 
           {/* Gallery Grid */}
           <div className="p-4">
@@ -468,7 +436,6 @@ const Gallery = () => {
         </main>
       </div>
 
-
       {/* NFT Modal */}
       {selectedNFT && (
         <NFTModal 
@@ -484,12 +451,10 @@ const Gallery = () => {
   );
 };
 
-
 // NFT Card Component
 const NFTCard = ({ nft, onClick }: { nft: NFT; onClick: () => void }) => {
   const [imageLoaded, setImageLoaded] = useState(false);
   const [imageError, setImageError] = useState(false);
-
 
   return (
     <div
@@ -526,7 +491,6 @@ const NFTCard = ({ nft, onClick }: { nft: NFT; onClick: () => void }) => {
         )}
       </div>
 
-
       <div className="p-2 text-center bg-[#121212]">
         <p className="text-xs text-[#a0a0a0]">
           Dead Bears #{nft.id}
@@ -535,7 +499,6 @@ const NFTCard = ({ nft, onClick }: { nft: NFT; onClick: () => void }) => {
     </div>
   );
 };
-
 
 // NFT Modal Component
 interface NFTModalProps {
@@ -546,7 +509,6 @@ interface NFTModalProps {
   getRarityLabel: (percentage: number) => string;
   getRarityColor: (percentage: number) => string;
 }
-
 
 const NFTModal = ({ nft, onClose, traitStats, totalSupply, getRarityLabel, getRarityColor }: NFTModalProps) => {
   useEffect(() => {
@@ -562,11 +524,9 @@ const NFTModal = ({ nft, onClose, traitStats, totalSupply, getRarityLabel, getRa
     };
   }, [onClose]);
 
-
   const downloadImage = () => {
     window.open(nft.imageUrl, "_blank");
   };
-
 
   return (
     <div 
@@ -587,7 +547,6 @@ const NFTModal = ({ nft, onClose, traitStats, totalSupply, getRarityLabel, getRa
           <X className="w-5 h-5 text-[#1a1a1a]" />
         </button>
 
-
         <div className="flex flex-col md:flex-row">
           {/* Left: Image */}
           <div className="md:w-1/2 p-4 md:p-6">
@@ -605,7 +564,6 @@ const NFTModal = ({ nft, onClose, traitStats, totalSupply, getRarityLabel, getRa
             </div>
           </div>
 
-
           {/* Right: Details */}
           <div className="md:w-1/2 p-4 md:p-6 flex flex-col max-h-[80vh] md:max-h-none overflow-y-auto">
             <h2 className="text-xl md:text-2xl font-bold text-[#1a1a1a]">
@@ -614,7 +572,6 @@ const NFTModal = ({ nft, onClose, traitStats, totalSupply, getRarityLabel, getRa
             <p className="text-sm text-[#6a6a8a] mb-4">
               Token #{nft.id}
             </p>
-
 
             {/* Attributes */}
             <div className="flex-1 space-y-2 mb-4">
@@ -650,7 +607,6 @@ const NFTModal = ({ nft, onClose, traitStats, totalSupply, getRarityLabel, getRa
               })}
             </div>
 
-
             {/* Download Button */}
             <Button
               onClick={downloadImage}
@@ -665,6 +621,5 @@ const NFTModal = ({ nft, onClose, traitStats, totalSupply, getRarityLabel, getRa
     </div>
   );
 };
-
 
 export default Gallery;
