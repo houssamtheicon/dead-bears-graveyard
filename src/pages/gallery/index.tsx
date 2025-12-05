@@ -338,7 +338,7 @@ const Gallery = () => {
           {/* Trait Filters */}
           {TRAIT_TYPES.map(traitType => (
             <FilterSection key={traitType} title={traitType}>
-              <div className="max-h-48 overflow-y-auto space-y-0.5 pr-1">
+              <div className="max-h-48 overflow-y-auto space-y-0.5 pr-1 scrollbar-hide">
                 {sortedTraitValues[traitType]?.map(value => (
                   <FilterCheckbox
                     key={value}
