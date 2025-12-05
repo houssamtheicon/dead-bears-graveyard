@@ -241,10 +241,11 @@ const Gallery = () => {
   const filteredNFTs = useMemo(() => {
     let result = [...nfts];
     
-    // Search by ID
+    // Search by ID - exact match or starts with
     if (searchId.trim()) {
+      const query = searchId.trim();
       result = result.filter(nft => 
-        nft.id.toString().includes(searchId.trim())
+        nft.id.toString() === query || nft.id.toString().startsWith(query)
       );
     }
     
@@ -308,10 +309,10 @@ const Gallery = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#0a0a0a]">
+    <div className="min-h-screen bg-[#0a0a0a] gallery-no-scrollbar">
       <div className="flex">
         {/* Sidebar */}
-        <aside className="w-56 lg:w-64 min-h-screen bg-[#0f0f0f] border-r border-[#2a2a2a] flex-shrink-0 sticky top-0 h-screen overflow-y-auto hidden md:block">
+        <aside className="w-56 lg:w-64 min-h-screen bg-[#0f0f0f] border-r border-[#2a2a2a] flex-shrink-0 sticky top-0 h-screen overflow-y-auto hidden md:block scrollbar-hide">
           {/* Back Button */}
           <div className="p-4 border-b border-[#2a2a2a]">
             <Link to="/" className="flex items-center gap-2 text-[#a0a0a0] hover:text-[#e0e0e0] transition-colors">
@@ -565,7 +566,7 @@ const NFTModal = ({ nft, onClose, traitStats, totalSupply, getRarityLabel, getRa
           </div>
 
           {/* Right: Details */}
-          <div className="md:w-1/2 p-4 md:p-6 flex flex-col max-h-[80vh] md:max-h-none overflow-y-auto">
+          <div className="md:w-1/2 p-4 md:p-6 flex flex-col max-h-[80vh] md:max-h-none overflow-y-auto scrollbar-hide">
             <h2 className="text-xl md:text-2xl font-bold text-[#1a1a1a]">
               {nft.name}
             </h2>
