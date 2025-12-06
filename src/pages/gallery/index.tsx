@@ -3,12 +3,10 @@ import { Search, ChevronDown, ChevronUp, Download, X, Loader2, ArrowLeft, Refres
 import { Link } from "react-router-dom";
 
 // Constants
-const HELIUS_API_KEY = "7e3cf47f-5052-46de-a4f7-55f184c6eb38";
-const COLLECTION_ADDRESS = "73cuL477aQHGsWdCpMNKNe9CWVPHzqdbekQTabS6ZziK";
 const MAX_SUPPLY = 1300;
 const BATCH_SIZE = 50;
 const ITEMS_PER_PAGE = 50;
-const REFRESH_INTERVAL = 45000;
+const REFRESH_INTERVAL = 60000;
 const ONE_OF_ONE_IDS = [424, 1044, 1140, 1231, 1597, 1647, 1876, 2054];
 const METADATA_BASE = "https://gateway.pinata.cloud/ipfs/bafybeifspz7rgzbrwvuoqsa5jepafex5p5x7lt4uyn2kfbkigptg4ebqgy";
 const IMAGE_BASE = "https://gateway.pinata.cloud/ipfs/bafybeih7353uke62onbpb2mac4fvko4iipd6puelmzk7etzamkbx3yzavq";
@@ -45,38 +43,18 @@ const scrollbarHideStyles = `
   }
 `;
 
-// Fetch minted NFT count from Helius
-async function fetchMintedCount(): Promise<number> {
-  try {
-    const response = await fetch(`https://mainnet.helius-rpc.com/?api-key=${HELIUS_API_KEY}`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        jsonrpc: "2.0",
-        id: "dead-bears",
-        method: "getAssetsByGroup",
-        params: {
-          groupKey: "collection",
-          groupValue: COLLECTION_ADDRESS,
-          page: 1,
-          limit: 1,
-        },
-      }),
-    });
-
-    const data = await response.json();
-    return data.result?.total || 0;
-  } catch (error) {
-    console.error("Helius API error:", error);
-    return 0;
-  }
-}
-
 // Fetch metadata with retry
 async function fetchMetadata(id: number, retries = 2): Promise<NFT | null> {
   for (let i = 0; i <= retries; i++) {
     try {
-      const res = await fetch(`${METADATA_BASE}/${id}.json`);
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 5000);
+      
+      const res = await fetch(`${METADATA_BASE}/${id}.json`, {
+        signal: controller.signal
+      });
+      clearTimeout(timeout);
+      
       if (!res.ok) {
         if (res.status === 404) return null;
         throw new Error(`HTTP ${res.status}`);
@@ -89,9 +67,9 @@ async function fetchMetadata(id: number, retries = 2): Promise<NFT | null> {
         attributes: data.attributes || [],
         isOneOfOne: ONE_OF_ONE_IDS.includes(id),
       };
-    } catch {
+    } catch (e) {
       if (i === retries) return null;
-      await new Promise(r => setTimeout(r, 200 * (i + 1)));
+      await new Promise(r => setTimeout(r, 300 * (i + 1)));
     }
   }
   return null;
@@ -101,7 +79,6 @@ const Gallery = () => {
   const [nfts, setNfts] = useState<NFT[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadedCount, setLoadedCount] = useState(0);
-  const [mintedCount, setMintedCount] = useState(0);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [selectedNFT, setSelectedNFT] = useState<NFT | null>(null);
   const [displayCount, setDisplayCount] = useState(ITEMS_PER_PAGE);
@@ -116,7 +93,7 @@ const Gallery = () => {
   const loadMoreRef = useRef<HTMLDivElement>(null);
   const cacheRef = useRef<{ nfts: NFT[]; timestamp: number } | null>(null);
 
-  // Load NFTs
+  // Load all NFTs from IPFS
   const loadNFTs = useCallback(async (isBackground = false) => {
     if (!isBackground) setLoading(true);
     else setIsRefreshing(true);
@@ -126,29 +103,34 @@ const Gallery = () => {
       if (cacheRef.current && Date.now() - cacheRef.current.timestamp < REFRESH_INTERVAL) {
         if (!isBackground) {
           setNfts(cacheRef.current.nfts);
-          setMintedCount(cacheRef.current.nfts.length);
           setLoading(false);
         }
         setIsRefreshing(false);
         return;
       }
 
-      // Get minted count from Helius
-      const totalMinted = await fetchMintedCount();
-      setMintedCount(totalMinted || 0);
-
-      // Load metadata in batches
       const allNFTs: NFT[] = [];
-      const maxToLoad = Math.min(totalMinted || MAX_SUPPLY, MAX_SUPPLY);
+      let consecutiveFailures = 0;
+      const maxConsecutiveFailures = 10;
 
-      for (let start = 1; start <= maxToLoad; start += BATCH_SIZE) {
+      // Load in batches
+      for (let start = 1; start <= MAX_SUPPLY; start += BATCH_SIZE) {
         const batchIds = Array.from(
-          { length: Math.min(BATCH_SIZE, maxToLoad - start + 1) },
+          { length: Math.min(BATCH_SIZE, MAX_SUPPLY - start + 1) },
           (_, i) => start + i
         );
 
         const results = await Promise.all(batchIds.map(id => fetchMetadata(id)));
         const validNFTs = results.filter((nft): nft is NFT => nft !== null);
+        
+        // Track consecutive failures to detect end of minted NFTs
+        const batchFailures = results.filter(r => r === null).length;
+        if (batchFailures === batchIds.length) {
+          consecutiveFailures += batchIds.length;
+        } else {
+          consecutiveFailures = 0;
+        }
+
         allNFTs.push(...validNFTs);
 
         if (!isBackground) {
@@ -156,18 +138,20 @@ const Gallery = () => {
           setLoadedCount(allNFTs.length);
         }
 
-        // Stop if we have enough
-        if (totalMinted > 0 && allNFTs.length >= totalMinted) break;
+        // Stop if we hit too many consecutive failures (likely end of minted NFTs)
+        if (consecutiveFailures >= maxConsecutiveFailures) {
+          console.log(`Stopping at ID ${start + BATCH_SIZE - 1} - ${consecutiveFailures} consecutive failures`);
+          break;
+        }
 
         // Small delay between batches
-        if (start + BATCH_SIZE <= maxToLoad) {
-          await new Promise(r => setTimeout(r, 50));
+        if (start + BATCH_SIZE <= MAX_SUPPLY) {
+          await new Promise(r => setTimeout(r, 100));
         }
       }
 
       cacheRef.current = { nfts: allNFTs, timestamp: Date.now() };
       setNfts(allNFTs);
-      setMintedCount(allNFTs.length);
     } catch (error) {
       console.error("Error loading NFTs:", error);
     } finally {
@@ -334,7 +318,7 @@ const Gallery = () => {
                 <span className="text-xs text-[#808080] uppercase tracking-wider">Minted</span>
                 <div className="flex items-center gap-2">
                   <span className="text-sm font-medium text-[#ff4444]">
-                    {mintedCount} / {MAX_SUPPLY}
+                    {nfts.length} / {MAX_SUPPLY}
                   </span>
                   {isRefreshing && <RefreshCw className="w-3 h-3 animate-spin text-[#ff4444]" />}
                 </div>
@@ -342,7 +326,7 @@ const Gallery = () => {
               <div className="h-1 bg-[#2a2a2a] rounded-full overflow-hidden">
                 <div
                   className="h-full bg-[#ff4444] transition-all duration-500"
-                  style={{ width: `${(mintedCount / MAX_SUPPLY) * 100}%` }}
+                  style={{ width: `${(nfts.length / MAX_SUPPLY) * 100}%` }}
                 />
               </div>
             </div>
@@ -364,7 +348,7 @@ const Gallery = () => {
                 </button>
                 {expandedFilters.includes("Specialty") && (
                   <div className="px-4 pb-3">
-                    <label className="flex items-center gap-2 py-1.5 cursor-pointer group">
+                    <label className="flex items-center gap-2 py-1.5 cursor-pointer group" onClick={() => setShowOneOfOneOnly(!showOneOfOneOnly)}>
                       <div
                         className={`w-4 h-4 border rounded flex items-center justify-center transition-colors ${
                           showOneOfOneOnly
@@ -411,14 +395,17 @@ const Gallery = () => {
                       {sortedTraitValues[type]?.map(value => {
                         const stat = traitStats[type]?.[value];
                         return (
-                          <label key={value} className="flex items-center gap-2 py-1.5 cursor-pointer group">
+                          <label 
+                            key={value} 
+                            className="flex items-center gap-2 py-1.5 cursor-pointer group"
+                            onClick={() => toggleTrait(type, value)}
+                          >
                             <div
                               className={`w-4 h-4 border rounded flex items-center justify-center transition-colors ${
                                 selectedTraits[type]?.includes(value)
                                   ? "bg-[#ff4444] border-[#ff4444]"
                                   : "border-[#404040] group-hover:border-[#606060]"
                               }`}
-                              onClick={() => toggleTrait(type, value)}
                             >
                               {selectedTraits[type]?.includes(value) && (
                                 <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -426,10 +413,7 @@ const Gallery = () => {
                                 </svg>
                               )}
                             </div>
-                            <span
-                              className="text-sm text-[#a0a0a0] group-hover:text-[#e0e0e0] flex-1 truncate"
-                              onClick={() => toggleTrait(type, value)}
-                            >
+                            <span className="text-sm text-[#a0a0a0] group-hover:text-[#e0e0e0] flex-1 truncate">
                               {value}
                             </span>
                             <span className="text-[10px] text-[#606060]">{stat?.count || 0}</span>
@@ -514,10 +498,10 @@ const Gallery = () => {
                   {loading ? (
                     <span className="flex items-center gap-2">
                       <Loader2 className="w-4 h-4 animate-spin" />
-                      {loadedCount} found
+                      Loading... {loadedCount} found
                     </span>
                   ) : (
-                    `${filteredNFTs.length} of ${nfts.length}`
+                    `${filteredNFTs.length} of ${nfts.length} minted`
                   )}
                 </div>
               </div>
